@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -13,8 +14,17 @@ type server struct {
 	greetpb.UnimplementedGreetServiceServer
 }
 
+func (s *server) Greet(ctx context.Context, req *greetpb.GreetRequest) (*greetpb.GreetResponse, error) {
+	log.Printf("greet from %v", req)
+	greet := req.GetGreeting()
+	firstName := greet.GetFirstName()
+	lastName := greet.GetLastName()
+	msg := fmt.Sprintf("Hello %s %s", firstName, lastName)
+	return &greetpb.GreetResponse{Result: msg}, nil
+}
+
 func main() {
-	fmt.Println("Hello World")
+	// fmt.Println("Hello World")
 
 	listener, err := net.Listen("tcp", "0.0.0.0:50051")
 	if err != nil {
