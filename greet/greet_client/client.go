@@ -17,10 +17,13 @@ func main() {
 	defer conn.Close()
 
 	clt := greetpb.NewGreetServiceClient(conn)
-	// log.Print(clt)
+	doUnary(clt)
+}
 
-	greeting := &greetpb.Greeting{FirstName: "Alice", LastName: "Bravo"}
-	req := &greetpb.GreetRequest{Greeting: greeting}
+func doUnary(clt greetpb.GreetServiceClient) {
+	req := &greetpb.GreetRequest{
+		Greeting: &greetpb.Greeting{FirstName: "Alice", LastName: "Bravo"},
+	}
 	resp, err := clt.Greet(context.Background(), req)
 	if err != nil {
 		log.Fatal(err)
