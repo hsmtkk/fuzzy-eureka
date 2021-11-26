@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/hsmtkk/fuzzy-eureka/greet/greetpb"
 	"google.golang.org/grpc"
@@ -20,7 +22,8 @@ func main() {
 	clt := greetpb.NewGreetServiceClient(conn)
 	//doUnary(clt)
 	//doServerStreaming(clt)
-	doClientStreaming(clt)
+	//doClientStreaming(clt)
+	doBidirStreaming(clt)
 }
 
 func doUnary(clt greetpb.GreetServiceClient) {
@@ -86,4 +89,55 @@ func doClientStreaming(clt greetpb.GreetServiceClient) {
 		log.Fatal(err)
 	}
 	log.Print(resp)
+}
+
+func doBidirStreaming(clt greetpb.GreetServiceClient) {
+	stream, err := clt.GreetEveryone(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	var waitc sync.WaitGroup
+
+	waitc.Add(1)
+	go func() {
+		defer waitc.Done()
+		reqs := []*greetpb.GreetEveryoneRequest{
+			{
+				Greeting: &greetpb.Greeting{
+					FirstName: "Echo",
+					LastName:  "Foxtrot",
+				},
+			},
+			{
+				Greeting: &greetpb.Greeting{
+					FirstName: "Golf",
+					LastName:  "Hotel",
+				},
+			},
+		}
+		for _, req := range reqs {
+			if err := stream.Send(req); err != nil {
+				log.Print(err)
+			}
+			time.Sleep(1 * time.Second)
+		}
+		stream.CloseSend()
+	}()
+
+	waitc.Add(1)
+	go func() {
+		defer waitc.Done()
+		for {
+			resp, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Print(err)
+			}
+			log.Print(resp.GetResult())
+		}
+	}()
+
+	waitc.Wait()
 }
