@@ -19,8 +19,9 @@ func main() {
 
 	clt := pb.NewCalcServiceClient(conn)
 
-	doUnary(clt)
-	doServerStreaming(clt)
+	//doUnary(clt)
+	//doServerStreaming(clt)
+	doClientStreaming(clt)
 }
 
 func doUnary(clt pb.CalcServiceClient) {
@@ -54,4 +55,20 @@ func doServerStreaming(clt pb.CalcServiceClient) {
 		}
 		fmt.Println(prime)
 	}
+}
+
+func doClientStreaming(clt pb.CalcServiceClient) {
+	stream, err := clt.Average(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	stream.Send(&pb.AverageRequest{Number: 3})
+	stream.Send(&pb.AverageRequest{Number: 2})
+	stream.Send(&pb.AverageRequest{Number: 1})
+	stream.Send(&pb.AverageRequest{Number: 4})
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp.GetAverage())
 }

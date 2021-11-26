@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"log"
 	"net"
 
@@ -43,6 +45,32 @@ func (s *server) DecomposePrimeNumber(req *pb.PrimeNumberDecompositionRequest, s
 		}
 	}
 	return nil
+}
+
+func (s *server) Average(stream pb.CalcService_AverageServer) error {
+	nums := []int64{}
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			resp := &pb.AverageResponse{
+				Average: average(nums),
+			}
+			stream.SendAndClose(resp)
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("failed to receive response; %w", err)
+		}
+		num := req.GetNumber()
+		nums = append(nums, num)
+	}
+}
+
+func average(nums []int64) float32 {
+	var s int64 = 0
+	for _, n := range nums {
+		s += n
+	}
+	return float32(s) / float32(len(nums))
 }
 
 func main() {
