@@ -14,88 +14,152 @@ import (
 // Requires gRPC-Go v1.32.0 or later.
 const _ = grpc.SupportPackageIsVersion7
 
-// SumServiceClient is the client API for SumService service.
+// CalcServiceClient is the client API for CalcService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type SumServiceClient interface {
+type CalcServiceClient interface {
 	Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error)
+	DecomposePrimeNumber(ctx context.Context, in *PrimeNumberDecompositionRequest, opts ...grpc.CallOption) (CalcService_DecomposePrimeNumberClient, error)
 }
 
-type sumServiceClient struct {
+type calcServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewSumServiceClient(cc grpc.ClientConnInterface) SumServiceClient {
-	return &sumServiceClient{cc}
+func NewCalcServiceClient(cc grpc.ClientConnInterface) CalcServiceClient {
+	return &calcServiceClient{cc}
 }
 
-func (c *sumServiceClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
+func (c *calcServiceClient) Sum(ctx context.Context, in *SumRequest, opts ...grpc.CallOption) (*SumResponse, error) {
 	out := new(SumResponse)
-	err := c.cc.Invoke(ctx, "/calc.SumService/Sum", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/calc.CalcService/Sum", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// SumServiceServer is the server API for SumService service.
-// All implementations must embed UnimplementedSumServiceServer
+func (c *calcServiceClient) DecomposePrimeNumber(ctx context.Context, in *PrimeNumberDecompositionRequest, opts ...grpc.CallOption) (CalcService_DecomposePrimeNumberClient, error) {
+	stream, err := c.cc.NewStream(ctx, &CalcService_ServiceDesc.Streams[0], "/calc.CalcService/DecomposePrimeNumber", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &calcServiceDecomposePrimeNumberClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type CalcService_DecomposePrimeNumberClient interface {
+	Recv() (*PrimeNumberDecompositionResponse, error)
+	grpc.ClientStream
+}
+
+type calcServiceDecomposePrimeNumberClient struct {
+	grpc.ClientStream
+}
+
+func (x *calcServiceDecomposePrimeNumberClient) Recv() (*PrimeNumberDecompositionResponse, error) {
+	m := new(PrimeNumberDecompositionResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+// CalcServiceServer is the server API for CalcService service.
+// All implementations must embed UnimplementedCalcServiceServer
 // for forward compatibility
-type SumServiceServer interface {
+type CalcServiceServer interface {
 	Sum(context.Context, *SumRequest) (*SumResponse, error)
-	mustEmbedUnimplementedSumServiceServer()
+	DecomposePrimeNumber(*PrimeNumberDecompositionRequest, CalcService_DecomposePrimeNumberServer) error
+	mustEmbedUnimplementedCalcServiceServer()
 }
 
-// UnimplementedSumServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedSumServiceServer struct {
+// UnimplementedCalcServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedCalcServiceServer struct {
 }
 
-func (UnimplementedSumServiceServer) Sum(context.Context, *SumRequest) (*SumResponse, error) {
+func (UnimplementedCalcServiceServer) Sum(context.Context, *SumRequest) (*SumResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Sum not implemented")
 }
-func (UnimplementedSumServiceServer) mustEmbedUnimplementedSumServiceServer() {}
+func (UnimplementedCalcServiceServer) DecomposePrimeNumber(*PrimeNumberDecompositionRequest, CalcService_DecomposePrimeNumberServer) error {
+	return status.Errorf(codes.Unimplemented, "method DecomposePrimeNumber not implemented")
+}
+func (UnimplementedCalcServiceServer) mustEmbedUnimplementedCalcServiceServer() {}
 
-// UnsafeSumServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to SumServiceServer will
+// UnsafeCalcServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to CalcServiceServer will
 // result in compilation errors.
-type UnsafeSumServiceServer interface {
-	mustEmbedUnimplementedSumServiceServer()
+type UnsafeCalcServiceServer interface {
+	mustEmbedUnimplementedCalcServiceServer()
 }
 
-func RegisterSumServiceServer(s grpc.ServiceRegistrar, srv SumServiceServer) {
-	s.RegisterService(&SumService_ServiceDesc, srv)
+func RegisterCalcServiceServer(s grpc.ServiceRegistrar, srv CalcServiceServer) {
+	s.RegisterService(&CalcService_ServiceDesc, srv)
 }
 
-func _SumService_Sum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _CalcService_Sum_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SumRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SumServiceServer).Sum(ctx, in)
+		return srv.(CalcServiceServer).Sum(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/calc.SumService/Sum",
+		FullMethod: "/calc.CalcService/Sum",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SumServiceServer).Sum(ctx, req.(*SumRequest))
+		return srv.(CalcServiceServer).Sum(ctx, req.(*SumRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-// SumService_ServiceDesc is the grpc.ServiceDesc for SumService service.
+func _CalcService_DecomposePrimeNumber_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(PrimeNumberDecompositionRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(CalcServiceServer).DecomposePrimeNumber(m, &calcServiceDecomposePrimeNumberServer{stream})
+}
+
+type CalcService_DecomposePrimeNumberServer interface {
+	Send(*PrimeNumberDecompositionResponse) error
+	grpc.ServerStream
+}
+
+type calcServiceDecomposePrimeNumberServer struct {
+	grpc.ServerStream
+}
+
+func (x *calcServiceDecomposePrimeNumberServer) Send(m *PrimeNumberDecompositionResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+// CalcService_ServiceDesc is the grpc.ServiceDesc for CalcService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var SumService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "calc.SumService",
-	HandlerType: (*SumServiceServer)(nil),
+var CalcService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "calc.CalcService",
+	HandlerType: (*CalcServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Sum",
-			Handler:    _SumService_Sum_Handler,
+			Handler:    _CalcService_Sum_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "DecomposePrimeNumber",
+			Handler:       _CalcService_DecomposePrimeNumber_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "calculator/pb/calc.proto",
 }
