@@ -3,8 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
+	"strings"
 	"time"
 
 	"github.com/hsmtkk/fuzzy-eureka/greet/greetpb"
@@ -35,6 +37,28 @@ func (s *server) GreetManyTimes(req *greetpb.GreetManyTimesRequest, stream greet
 		time.Sleep(1 * time.Second)
 	}
 	return nil
+}
+
+func (s *server) LongGreet(stream greetpb.GreetService_LongGreetServer) error {
+	results := []string{"Hello"}
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			result := strings.Join(results, " ")
+			resp := &greetpb.LongGreetResponse{
+				Result: result,
+			}
+			if err := stream.SendAndClose(resp); err != nil {
+				return fmt.Errorf("failed to send response; %w", err)
+			}
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("failed to receive request; %w", err)
+		}
+		firstName := req.GetGreeting().GetFirstName()
+		lastName := req.GetGreeting().GetLastName()
+		results = append(results, fmt.Sprintf("%s %s!", firstName, lastName))
+	}
 }
 
 func main() {

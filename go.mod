@@ -1,8 +1,6 @@
 module github.com/hsmtkk/fuzzy-eureka
 
 go 1.17
-<<<<<<< HEAD
-=======
 
 require (
 	google.golang.org/grpc v1.42.0
@@ -16,4 +14,3 @@ require (
 	golang.org/x/text v0.3.0 // indirect
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013 // indirect
 )
->>>>>>> 34de22599e71e12ddb34c3dc3cf7dbbd056dd3c0

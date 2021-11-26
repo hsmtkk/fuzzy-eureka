@@ -18,8 +18,9 @@ func main() {
 	defer conn.Close()
 
 	clt := greetpb.NewGreetServiceClient(conn)
-	doUnary(clt)
-	doServerStreaming(clt)
+	//doUnary(clt)
+	//doServerStreaming(clt)
+	doClientStreaming(clt)
 }
 
 func doUnary(clt greetpb.GreetServiceClient) {
@@ -54,4 +55,35 @@ func doServerStreaming(clt greetpb.GreetServiceClient) {
 		}
 		log.Print(msg)
 	}
+}
+
+func doClientStreaming(clt greetpb.GreetServiceClient) {
+	stream, err := clt.LongGreet(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	reqs := []*greetpb.LongGreetRequest{
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Echo",
+				LastName:  "Foxtrot",
+			},
+		},
+		{
+			Greeting: &greetpb.Greeting{
+				FirstName: "Golf",
+				LastName:  "Hotel",
+			},
+		},
+	}
+	for _, req := range reqs {
+		if err := stream.Send(req); err != nil {
+			log.Fatal(err)
+		}
+	}
+	resp, err := stream.CloseAndRecv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
 }
