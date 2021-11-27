@@ -11,6 +11,7 @@ import (
 	"github.com/hsmtkk/fuzzy-eureka/calculator/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 )
 
@@ -115,6 +116,10 @@ func main() {
 	defer listener.Close()
 
 	s := grpc.NewServer()
+
+	// register reflection service
+	reflection.Register(s)
+
 	pb.RegisterCalcServiceServer(s, &server{})
 	if err := s.Serve(listener); err != nil {
 		log.Fatal(err)
