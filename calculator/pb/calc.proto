@@ -36,9 +36,18 @@ message FindMaximumResponse {
     int64 currentMaximum = 1;
 }
 
+message SquareRootRequest {
+    int64 number = 1;
+}
+
+message SquareRootResponse {
+    double numberRoot = 1;
+}
+
 service CalcService {
     rpc Sum(SumRequest) returns (SumResponse) {};
     rpc DecomposePrimeNumber(PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
     rpc Average(stream AverageRequest) returns (AverageResponse) {};
     rpc FindMaximum(stream FindMaximumRequest) returns (stream FindMaximumResponse) {};
+    rpc SquareRoot(SquareRootRequest) returns (SquareRootResponse){};
 }

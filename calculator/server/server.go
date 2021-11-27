@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net"
 
 	"github.com/hsmtkk/fuzzy-eureka/calculator/pb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
@@ -93,6 +96,15 @@ func (s *server) FindMaximum(stream pb.CalcService_FindMaximumServer) error {
 			return fmt.Errorf("failed to send response; %w", err)
 		}
 	}
+}
+
+func (s *server) SquareRoot(ctx context.Context, req *pb.SquareRootRequest) (*pb.SquareRootResponse, error) {
+	num := req.GetNumber()
+	if num < 0 {
+		return nil, status.Errorf(codes.InvalidArgument, "%d is negative", num)
+	}
+	sq := math.Sqrt(float64(num))
+	return &pb.SquareRootResponse{NumberRoot: sq}, nil
 }
 
 func main() {

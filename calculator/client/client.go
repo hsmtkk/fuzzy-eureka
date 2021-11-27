@@ -22,7 +22,8 @@ func main() {
 	//doUnary(clt)
 	//doServerStreaming(clt)
 	//doClientStreaming(clt)
-	doBidirStreaming(clt)
+	//doBidirStreaming(clt)
+	trySquareRoot(clt)
 }
 
 func doUnary(clt pb.CalcServiceClient) {
@@ -97,4 +98,18 @@ func doBidirStreaming(clt pb.CalcServiceClient) {
 		}
 		log.Printf("current maximum %d", resp.GetCurrentMaximum())
 	}
+}
+
+func trySquareRoot(clt pb.CalcServiceClient) {
+	resp, err := clt.SquareRoot(context.Background(), &pb.SquareRootRequest{Number: 256})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
+
+	resp, err = clt.SquareRoot(context.Background(), &pb.SquareRootRequest{Number: -256})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
 }
