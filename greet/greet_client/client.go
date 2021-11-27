@@ -10,10 +10,16 @@ import (
 
 	"github.com/hsmtkk/fuzzy-eureka/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 func main() {
-	conn, err := grpc.Dial("localhost:50051", grpc.WithInsecure())
+	certFile := "./selfsignedcert/cert.pem"
+	creds, err := credentials.NewClientTLSFromFile(certFile, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	conn, err := grpc.Dial("local.example.com:50051", grpc.WithTransportCredentials(creds))
 	if err != nil {
 		log.Fatal(err)
 	}

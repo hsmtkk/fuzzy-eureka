@@ -11,6 +11,7 @@ import (
 
 	"github.com/hsmtkk/fuzzy-eureka/greet/greetpb"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type server struct {
@@ -86,7 +87,14 @@ func main() {
 	}
 	defer listener.Close()
 
-	s := grpc.NewServer()
+	certFile := "./selfsignedcert/cert.pem"
+	keyFile := "./selfsignedcert/key.pem"
+	creds, err := credentials.NewServerTLSFromFile(certFile, keyFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	s := grpc.NewServer(grpc.Creds(creds))
 	greetpb.RegisterGreetServiceServer(s, &server{})
 
 	if err := s.Serve(listener); err != nil {
