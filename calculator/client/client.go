@@ -21,7 +21,8 @@ func main() {
 
 	//doUnary(clt)
 	//doServerStreaming(clt)
-	doClientStreaming(clt)
+	//doClientStreaming(clt)
+	doBidirStreaming(clt)
 }
 
 func doUnary(clt pb.CalcServiceClient) {
@@ -71,4 +72,29 @@ func doClientStreaming(clt pb.CalcServiceClient) {
 		log.Fatal(err)
 	}
 	log.Print(resp.GetAverage())
+}
+
+func doBidirStreaming(clt pb.CalcServiceClient) {
+	stream, err := clt.FindMaximum(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	reqs := []*pb.FindMaximumRequest{
+		{Number: 3},
+		{Number: 1},
+		{Number: 5},
+		{Number: 2},
+		{Number: 6},
+	}
+	for _, req := range reqs {
+		log.Printf("sending %d", req.GetNumber())
+		if err := stream.Send(req); err != nil {
+			log.Fatal(err)
+		}
+		resp, err := stream.Recv()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("current maximum %d", resp.GetCurrentMaximum())
+	}
 }

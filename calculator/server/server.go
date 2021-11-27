@@ -73,6 +73,28 @@ func average(nums []int64) float32 {
 	return float32(s) / float32(len(nums))
 }
 
+func (s *server) FindMaximum(stream pb.CalcService_FindMaximumServer) error {
+	var currentMax int64 = 0
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("failed to receive request; %w", err)
+		}
+		num := req.GetNumber()
+		if num > currentMax {
+			currentMax = num
+		}
+		resp := &pb.FindMaximumResponse{
+			CurrentMaximum: int64(currentMax),
+		}
+		if err := stream.Send(resp); err != nil {
+			return fmt.Errorf("failed to send response; %w", err)
+		}
+	}
+}
+
 func main() {
 	listener, err := net.Listen("tcp", "127.0.0.1:50051")
 	if err != nil {

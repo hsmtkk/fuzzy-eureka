@@ -28,8 +28,17 @@ message AverageResponse {
     float average = 1;
 }
 
+message FindMaximumRequest {
+    int64 number = 1;
+}
+
+message FindMaximumResponse {
+    int64 currentMaximum = 1;
+}
+
 service CalcService {
     rpc Sum(SumRequest) returns (SumResponse) {};
     rpc DecomposePrimeNumber(PrimeNumberDecompositionRequest) returns (stream PrimeNumberDecompositionResponse) {};
     rpc Average(stream AverageRequest) returns (AverageResponse) {};
+    rpc FindMaximum(stream FindMaximumRequest) returns (stream FindMaximumResponse) {};
 }
