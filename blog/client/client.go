@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/hsmtkk/fuzzy-eureka/blog/blog"
@@ -15,7 +16,12 @@ func main() {
 	}
 	defer conn.Close()
 	clt := blog.NewBlogServiceClient(conn)
+	if err := createBlog(clt); err != nil {
+		log.Fatal(err)
+	}
+}
 
+func createBlog(clt blog.BlogServiceClient) error {
 	req := &blog.CreateRequest{
 		Blog: &blog.Blog{
 			AuthorId: "alpha",
@@ -26,7 +32,8 @@ func main() {
 	log.Printf("creating blog: %v", req)
 	resp, err := clt.Create(context.Background(), req)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to create blog; %v", err)
 	}
 	log.Printf("created blog: %v", resp)
+	return nil
 }
