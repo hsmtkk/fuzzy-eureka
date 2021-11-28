@@ -59,9 +59,9 @@ func (s *server) Create(ctx context.Context, req *blog.CreateRequest) (*blog.Cre
 
 func (s *server) Read(ctx context.Context, req *blog.ReadRequest) (*blog.ReadResponse, error) {
 	blogID := req.GetBlogId()
-	var item blogItem
-	if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {
-		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("blog %s not found; %w", blogID, err))
+	item, err := s.getBlogByID(blogID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "%w", err)
 	}
 	resp := &blog.ReadResponse{
 		Blog: &blog.Blog{
@@ -72,6 +72,36 @@ func (s *server) Read(ctx context.Context, req *blog.ReadRequest) (*blog.ReadRes
 		},
 	}
 	return resp, nil
+}
+
+func (s *server) Update(ctx context.Context, req *blog.UpdateRequest) (*blog.UpdateResponse, error) {
+	reqBlog := req.GetBlog()
+	blogID := reqBlog.GetId()
+	item, err := s.getBlogByID(blogID)
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, "%w", err)
+	}
+	item.AuthorID = reqBlog.GetAuthorId()
+	item.Content = reqBlog.GetContent()
+	item.Title = reqBlog.GetTitle()
+	s.driver.Write(COLLECTION, blogID, &item)
+	resp := &blog.UpdateResponse{
+		Blog: &blog.Blog{
+			Id:       item.ID,
+			AuthorId: item.AuthorID,
+			Content:  item.Content,
+			Title:    item.Title,
+		},
+	}
+	return resp, nil
+}
+
+func (s *server) getBlogByID(blogID string) (blogItem, error) {
+	var item blogItem
+	if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {
+		return blogItem{}, fmt.Errorf("blog %s is not found; %w", blogID, err)
+	}
+	return item, nil
 }
 
 type blogItem struct {

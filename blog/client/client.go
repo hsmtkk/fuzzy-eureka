@@ -23,7 +23,8 @@ func main() {
 		}
 	*/
 
-	readBlog(clt)
+	//readBlog(clt)
+	updateBlog(clt)
 }
 
 func createBlog(clt blog.BlogServiceClient) error {
@@ -59,5 +60,22 @@ func readBlog(clt blog.BlogServiceClient) error {
 	_, err = clt.Read(context.Background(), req)
 	log.Print(err)
 
+	return nil
+}
+
+func updateBlog(clt blog.BlogServiceClient) error {
+	req := &blog.UpdateRequest{
+		Blog: &blog.Blog{
+			Id:       "2d15e6f1-74dd-4176-b930-dca03ab84810",
+			AuthorId: "alice",
+			Content:  "alice content",
+			Title:    "alice title",
+		},
+	}
+	resp, err := clt.Update(context.Background(), req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
 	return nil
 }
