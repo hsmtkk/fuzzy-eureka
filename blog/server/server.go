@@ -96,6 +96,17 @@ func (s *server) Update(ctx context.Context, req *blog.UpdateRequest) (*blog.Upd
 	return resp, nil
 }
 
+func (s *server) Delete(ctx context.Context, req *blog.DeleteRequest) (*blog.DeleteResponse, error) {
+	blogID := req.GetBlogId()
+	if err := s.driver.Delete(COLLECTION, blogID); err != nil {
+		return nil, status.Errorf(codes.NotFound, "failed to delete %s; %w", blogID, err)
+	}
+	resp := &blog.DeleteResponse{
+		BlogId: blogID,
+	}
+	return resp, nil
+}
+
 func (s *server) getBlogByID(blogID string) (blogItem, error) {
 	var item blogItem
 	if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {

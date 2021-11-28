@@ -17,14 +17,10 @@ func main() {
 	defer conn.Close()
 	clt := blog.NewBlogServiceClient(conn)
 
-	/*
-		if err := createBlog(clt); err != nil {
-			log.Fatal(err)
-		}
-	*/
-
+	//createBlog(clt)
 	//readBlog(clt)
-	updateBlog(clt)
+	//updateBlog(clt)
+	deleteBlog(clt)
 }
 
 func createBlog(clt blog.BlogServiceClient) error {
@@ -73,6 +69,18 @@ func updateBlog(clt blog.BlogServiceClient) error {
 		},
 	}
 	resp, err := clt.Update(context.Background(), req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
+	return nil
+}
+
+func deleteBlog(clt blog.BlogServiceClient) error {
+	req := &blog.DeleteRequest{
+		BlogId: "2d15e6f1-74dd-4176-b930-dca03ab84810",
+	}
+	resp, err := clt.Delete(context.Background(), req)
 	if err != nil {
 		log.Fatal(err)
 	}
