@@ -13,6 +13,8 @@ import (
 	"github.com/hsmtkk/fuzzy-eureka/blog/blog"
 	scribble "github.com/nanobox-io/golang-scribble"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const COLLECTION = "blog"
@@ -50,6 +52,23 @@ func (s *server) Create(ctx context.Context, req *blog.CreateRequest) (*blog.Cre
 			AuthorId: authorID,
 			Content:  content,
 			Title:    title,
+		},
+	}
+	return resp, nil
+}
+
+func (s *server) Read(ctx context.Context, req *blog.ReadRequest) (*blog.ReadResponse, error) {
+	blogID := req.GetBlogId()
+	var item blogItem
+	if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {
+		return nil, status.Errorf(codes.NotFound, fmt.Sprintf("blog %s not found; %w", blogID, err))
+	}
+	resp := &blog.ReadResponse{
+		Blog: &blog.Blog{
+			Id:       item.ID,
+			AuthorId: item.AuthorID,
+			Content:  item.Content,
+			Title:    item.Title,
 		},
 	}
 	return resp, nil

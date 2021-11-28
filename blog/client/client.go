@@ -16,9 +16,14 @@ func main() {
 	}
 	defer conn.Close()
 	clt := blog.NewBlogServiceClient(conn)
-	if err := createBlog(clt); err != nil {
-		log.Fatal(err)
-	}
+
+	/*
+		if err := createBlog(clt); err != nil {
+			log.Fatal(err)
+		}
+	*/
+
+	readBlog(clt)
 }
 
 func createBlog(clt blog.BlogServiceClient) error {
@@ -35,5 +40,24 @@ func createBlog(clt blog.BlogServiceClient) error {
 		return fmt.Errorf("failed to create blog; %v", err)
 	}
 	log.Printf("created blog: %v", resp)
+	return nil
+}
+
+func readBlog(clt blog.BlogServiceClient) error {
+	req := &blog.ReadRequest{
+		BlogId: "2d15e6f1-74dd-4176-b930-dca03ab84810",
+	}
+	resp, err := clt.Read(context.Background(), req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Print(resp)
+
+	req = &blog.ReadRequest{
+		BlogId: "hogehoge",
+	}
+	_, err = clt.Read(context.Background(), req)
+	log.Print(err)
+
 	return nil
 }
