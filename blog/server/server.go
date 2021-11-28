@@ -107,6 +107,31 @@ func (s *server) Delete(ctx context.Context, req *blog.DeleteRequest) (*blog.Del
 	return resp, nil
 }
 
+func (s *server) List(req *blog.ListRequest, srv blog.BlogService_ListServer) error {
+	blogIDs, err := s.driver.ReadAll(COLLECTION)
+	if err != nil {
+		return fmt.Errorf("failed to read scribble; %w", err)
+	}
+	for _, blogID := range blogIDs {
+		var item blogItem
+		if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {
+			return fmt.Errorf("failed to read scribble; %s; %w", blogID, err)
+		}
+		resp := &blog.ListResponse{
+			Blog: &blog.Blog{
+				Id:       item.ID,
+				AuthorId: item.AuthorID,
+				Content:  item.Content,
+				Title:    item.Title,
+			},
+		}
+		if err := srv.Send(resp); err != nil {
+			return fmt.Errorf("failed to send response; %w", err)
+		}
+	}
+	return nil
+}
+
 func (s *server) getBlogByID(blogID string) (blogItem, error) {
 	var item blogItem
 	if err := s.driver.Read(COLLECTION, blogID, &item); err != nil {

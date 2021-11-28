@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/hsmtkk/fuzzy-eureka/blog/blog"
@@ -17,10 +18,11 @@ func main() {
 	defer conn.Close()
 	clt := blog.NewBlogServiceClient(conn)
 
-	//createBlog(clt)
+	createBlog(clt)
 	//readBlog(clt)
 	//updateBlog(clt)
-	deleteBlog(clt)
+	//deleteBlog(clt)
+	listBlog(clt)
 }
 
 func createBlog(clt blog.BlogServiceClient) error {
@@ -85,5 +87,22 @@ func deleteBlog(clt blog.BlogServiceClient) error {
 		log.Fatal(err)
 	}
 	log.Print(resp)
+	return nil
+}
+
+func listBlog(clt blog.BlogServiceClient) error {
+	stream, err := clt.List(context.Background(), &blog.ListRequest{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	for {
+		resp, err := stream.Recv()
+		if err == io.EOF {
+			break
+		} else if err != nil {
+			log.Print(err)
+		}
+		log.Print(resp)
+	}
 	return nil
 }

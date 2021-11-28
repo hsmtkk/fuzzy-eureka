@@ -43,9 +43,16 @@ message DeleteResponse {
     string blog_id = 1;
 }
 
+message ListRequest {}
+
+message ListResponse {
+    Blog blog = 1;
+}
+
 service BlogService {
     rpc Create(CreateRequest) returns (CreateResponse){};
     rpc Read(ReadRequest) returns (ReadResponse){};
     rpc Update(UpdateRequest) returns (UpdateResponse){};
     rpc Delete(DeleteRequest) returns (DeleteResponse){};
+    rpc List(ListRequest) returns (stream ListResponse){};
 }
